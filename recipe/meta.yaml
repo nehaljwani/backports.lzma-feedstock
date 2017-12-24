@@ -10,23 +10,37 @@ source:
   fn: {{ name }}-{{ version }}.tar.gz
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: {{ sha256 }}
+  patches:
+    - 0001-Add-another-fallback-for-test.support-import.patch
+    - 0002-Fix-name-of-extension.patch
+    - 0003-Compute-name-of-lzma-library.patch
+    - 0004-Add-compiler-flag-to-realign-stack-for-32bit-gcc.patch
 
 build:
-  number: 1
-  skip: true  # [win]
-  script: python setup.py install
+  number: 2
+  script:
+    - python setup.py build_ext --include-dirs "%LIBRARY_PREFIX%\\mingw-w64\\include" --library-dirs "%LIBRARY_PREFIX%\\mingw-w64\\lib"  # [win and py27]
+    - python setup.py install
 
 requirements:
-  build:
-    - toolchain
+  host:
     - python
     - backports
-    - xz 5.2.*
+    - xz                   # [unix or py3k]
+    - m2w64-xz             # [win and py2k]
+    - m2w64-toolchain      # [win and py2k]
+    - libpython            # [win and py2k]
+
+  build:
+    - {{ compiler('c') }}  # [unix]
 
   run:
     - python
     - backports
-    - xz 5.2.*
+    # Run exports will take care of xz
+    - {{ pin_compatible('m2w64-xz') }}  # [win and py2k]
+    - {{ n }}gcc-libs                   # [win and py2k]
+    - future                            # [py2k]
 
 test:
   source_files:
@@ -49,3 +63,4 @@ extra:
     - alimanfoo
     - groutr
     - jakirkham
+    - nehaljwani

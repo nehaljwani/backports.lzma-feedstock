@@ -1,0 +1,39 @@
+From 4d3cba962f4e87da0db373a891195603e9a96875 Mon Sep 17 00:00:00 2001
+From: Nehal J Wani <nehaljw.kkd1@gmail.com>
+Date: Sun, 24 Dec 2017 03:39:10 +0530
+Subject: [PATCH 4/4] Add compiler flag to realign stack for 32bit gcc
+
+---
+ setup.py | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 1058510..31d18ae 100644
+--- a/setup.py
++++ b/setup.py
+@@ -29,6 +29,14 @@ print("This is backports.lzma version %s" % __version__)
+ 
+ lzmalib = '%slzma'%('lib' if sys.platform == 'win32' else '')
+ 
++class build_ext_subclass(build_ext):
++    def build_extensions(self):
++        c = self.compiler.compiler_type
++        if c == "mingw32" and sys.maxsize <= 2**32:
++           for e in self.extensions:
++               e.extra_compile_args = ["-mstackrealign"]
++        build_ext.build_extensions(self)
++
+ packages = ["backports", "backports.lzma"]
+ prefix = sys.prefix
+ home = os.path.expanduser("~")
+@@ -87,6 +95,6 @@ setup(
+     namespace_packages = ['backports'],
+     ext_modules = extens,
+     cmdclass = {
+-        'build_ext': build_ext,
++        'build_ext': build_ext_subclass,
+     },
+ )
+-- 
+2.14.3
+

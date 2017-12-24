@@ -1,0 +1,34 @@
+From 826436a1e0c29d78f19af27760fd004cdf81ebc8 Mon Sep 17 00:00:00 2001
+From: Nehal J Wani <nehaljw.kkd1@gmail.com>
+Date: Sun, 24 Dec 2017 01:35:12 +0530
+Subject: [PATCH 3/4] Compute name of lzma library
+
+For *nix-y builds (including mingw-64), -lzma would suffize. But for
+Visual Studio builds, the complete name for the .lib file is required.
+---
+ setup.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 477b9f4..1058510 100644
+--- a/setup.py
++++ b/setup.py
+@@ -27,12 +27,14 @@ if __version__ is None:
+     sys.exit(1)
+ print("This is backports.lzma version %s" % __version__)
+ 
++lzmalib = '%slzma'%('lib' if sys.platform == 'win32' else '')
++
+ packages = ["backports", "backports.lzma"]
+ prefix = sys.prefix
+ home = os.path.expanduser("~")
+ extens = [Extension('backports.lzma._lzma',
+                     ['backports/lzma/_lzmamodule.c'],
+-                    libraries = ['lzma'],
++                    libraries = [lzmalib],
+                     include_dirs = [
+                         os.path.join(prefix, 'include'),
+                         os.path.join(home, 'include'),
+-- 
+2.14.3
+
